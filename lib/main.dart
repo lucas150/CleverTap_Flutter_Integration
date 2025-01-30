@@ -276,14 +276,43 @@ class _MyHomePageState extends State<MyHomePage> {
     CleverTapPlugin()
         .setCleverTapInboxMessagesDidUpdateHandler(inboxMessagesDidUpdate);
 
-    void onDisplayUnitsLoaded(List<dynamic>? displayUnits) {
-      this.setState(() {
-        print("Display Units = " + displayUnits.toString());
-      });
-    }
+    // void onDisplayUnitsLoaded(List<dynamic>? displayUnits) {
+    //   this.setState(() {
+    //     print("Display Units = " + displayUnits.toString());
+    //   });
+    // }
 
+    // CleverTapPlugin()
+    //     .setCleverTapDisplayUnitsLoadedHandler(onDisplayUnitsLoaded);
     CleverTapPlugin()
         .setCleverTapDisplayUnitsLoadedHandler(onDisplayUnitsLoaded);
+  }
+
+  void onDisplayUnitsLoaded(List<dynamic>? displayUnits) {
+    if (displayUnits == null || displayUnits.isEmpty) {
+      debugPrint(":rotating_light: No display units received.");
+      return;
+    }
+    debugPrint(":white_check_mark: Display Units Loaded: $displayUnits");
+    setState(() {
+      imageURls.clear(); // Reset previous URLs
+      for (var unit in displayUnits) {
+        if (unit["content"] is List && unit["content"].isNotEmpty) {
+          var imgUrl = unit["content"][0]["media"]
+              ?["url"]; // Use "media" instead of "icon"
+          if (imgUrl != null && imgUrl.isNotEmpty) {
+            imageURls.add(imgUrl);
+          }
+        }
+      }
+    });
+  }
+
+  void fetchNativeDisplay() async {
+    await Future.delayed(Duration(seconds: 2)); // Ensure async wait works
+    var displayUnits = await CleverTapPlugin.getAllDisplayUnits();
+    debugPrint(":package: Manually fetched display units: $displayUnits");
+    onDisplayUnitsLoaded(displayUnits);
   }
 
   void inboxDidInitialize() {
@@ -307,21 +336,23 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void Native_Display() {
+  void nativeDisplay() {
+    debugPrint(":rocket: Triggering Native Display Event...");
     CleverTapPlugin.recordEvent("Native Display", {});
+    fetchNativeDisplay(); // Manually fetch display units after triggering
   }
 
-  void onDisplayUnitsLoaded(List<dynamic>? displayUnits) {
-    setState(() {
-      displayUnits?.forEach((element) {
-        print("Display Units = " + element.toString());
-        var img1 = element["content"][0]["icon"]["url"];
-        setState(() {
-          imageURls.add(img1);
-        });
-      });
-    });
-  }
+  // void onDisplayUnitsLoaded(List<dynamic>? displayUnits) {
+  //   setState(() {
+  //     displayUnits?.forEach((element) {
+  //       print("Display Units = " + element.toString());
+  //       var img1 = element["content"][0]["icon"]["url"];
+  //       setState(() {
+  //         imageURls.add(img1);
+  //       });
+  //     });
+  //   });
+  // }
 
   void _incrementCounter() {
     setState(() {
@@ -372,13 +403,13 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(
               onPressed: () {
                 //CleverTapPlugin.showInbox({});
-                Native_Display();
+                nativeDisplay();
               },
               child: const Text('Native Display'),
             ),
 
             // Add space between buttons and images
-            const SizedBox(height: 200),
+            const SizedBox(height: 20),
 
             // Display images if there are any in imageUrls
             if (imageURls.isNotEmpty)
