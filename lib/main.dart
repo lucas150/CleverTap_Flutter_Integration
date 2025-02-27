@@ -254,9 +254,9 @@ class _MyHomePageState extends State<MyHomePage> {
     var values = [DateTime.parse('20250130'), DateTime.parse('20250210')];
     CleverTapPlugin.profileSetMultiValues("End Policy Dates Multiple", values);
     var profile = {
-      'Name': 'Captain America',
-      'Identity': '25',
-      'Email': 'chebd@america.com',
+      'Name': 'Captainavg America',
+      'Identity': '101',
+      'Email': 'cabdhj@america.com',
       'Phone': '+14121234',
       'stuff': stuff,
     };

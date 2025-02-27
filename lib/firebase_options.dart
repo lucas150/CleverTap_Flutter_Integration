@@ -26,10 +26,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -59,4 +56,14 @@ class DefaultFirebaseOptions {
     projectId: 'clevertapflutter',
     storageBucket: 'clevertapflutter.firebasestorage.app',
   );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyCBAQOpvAatx5l2N9L8EN8aHaUU8wIKvUU',
+    appId: '1:405605804536:ios:29d896fa9797a8121e4e0d',
+    messagingSenderId: '405605804536',
+    projectId: 'clevertapflutter',
+    storageBucket: 'clevertapflutter.firebasestorage.app',
+    iosBundleId: 'com.clevertap.NotificationService',
+  );
+
 }
