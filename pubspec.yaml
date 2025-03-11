@@ -30,12 +30,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  clevertap_plugin: 3.0.0
+  clevertap_plugin: 3.2.0
   firebase_core: ^2.27.0
-
+  firebase_messaging: ^14.7.10
+  
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  go_router: ^14.8.1
 
 dev_dependencies:
   flutter_test:
