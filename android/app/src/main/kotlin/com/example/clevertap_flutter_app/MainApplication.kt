@@ -12,6 +12,7 @@ import com.google.firebase.FirebaseApp
 class MainApplication : CleverTapApplication() {
     override fun onCreate() {
         ActivityLifecycleCallback.register(this);
+        CleverTapAPI.setDebugLevel(3);
         CleverTapAPI.setNotificationHandler(PushTemplateNotificationHandler())
         super.onCreate()
     }

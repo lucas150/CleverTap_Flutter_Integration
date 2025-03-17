@@ -20,12 +20,6 @@ class MainActivity: FlutterFragmentActivity(){
 
             cleverTapDefaultInstance?.pushNotificationClickedEvent(intent!!.extras)
         }
-        
-        val data: Uri? = intent.data
-        if (data != null) {
-            MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, CHANNEL)
-                .invokeMethod("onDeepLinkReceived", data.toString())
-        }
     }
 }
 

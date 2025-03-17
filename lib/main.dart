@@ -5,6 +5,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'dart:convert';
 import 'second_screen.dart';
+import 'dart:io';
+
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -19,25 +21,34 @@ void _firebaseForegroundMessageHandler(RemoteMessage remoteMessage) {
   CleverTapPlugin.createNotification(jsonEncode(remoteMessage.data));
 }
 
+
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   FirebaseMessaging.onMessage.listen(_firebaseForegroundMessageHandler);
   FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessageHandler);
-  // CleverTapPlugin.onKilledStateNotificationClicked(_onKilledStateNotificationClickedHandler);
-
+  CleverTapPlugin.onKilledStateNotificationClicked(_onKilledStateNotificationClickedHandler);
+  
   runApp(const MyApp());
 }
 
-// @pragma('vm:entry-point')
-// void _onKilledStateNotificationClickedHandler(Map<String, dynamic> payload) {
-//   debugPrint("Notification clicked in Kill State: $payload");
+@pragma('vm:entry-point')
+void _onKilledStateNotificationClickedHandler(Map<String, dynamic> payload) async {
+  debugPrint("Notification clicked in Kill State: $payload");
+  // print("Notification Foreground 1");
+  
+CleverTapPlugin.getAppLaunchNotification();
+  if (payload.containsKey("wzrk_dl") && payload["wzrk_dl"] == "myapp://second") {
+      // print("Notification Foreground 2");
+    navigatorKey.currentState?.pushNamed('/second');
+  }
+}
 
-//   if (payload.containsKey("wzrk_dl") && payload["wzrk_dl"] == "myapp://second") {
-//     navigatorKey.currentState?.pushNamed('/second');
-//   }
-// }
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -71,6 +82,29 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<String> imageUrls1 = [];
   List<String> imageUrls2 = [];
+   void _handleKilledStateNotificationInteraction() async {
+    CleverTapAppLaunchNotification appLaunchNotification = await CleverTapPlugin.getAppLaunchNotification();
+    // print("Notification Foreground 3");
+
+    if (appLaunchNotification.didNotificationLaunchApp) {
+      Map<String, dynamic> notificationPayload = appLaunchNotification.payload!;
+      // print("Notification Foreground 4");
+      _handleDeeplink(notificationPayload);
+    }
+  }
+  void _handleDeeplink(Map<String, dynamic> notificationPayload) {
+    var type = notificationPayload["type"];
+    // print("Notification Foreground 5");
+    // print(type);
+    debugPrint("CleverTap : payload $notificationPayload");
+    if (type != null) {
+      // print("_handleKilledStateNotificationInteraction => Type: $type");
+      // print("Notification Foreground 3");
+
+         navigatorKey.currentState?.pushNamed('/second');
+      
+    }
+  }
 
 
   @override
@@ -78,6 +112,9 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     _initializeCleverTap();
     _setupFirebaseMessaging();
+     if (Platform.isAndroid) {
+      _handleKilledStateNotificationInteraction();
+    }
   }
 
   void _setupFirebaseMessaging() {
@@ -110,20 +147,16 @@ class _MyHomePageState extends State<MyHomePage> {
  
 
   void _onNotificationClicked(Map<String, dynamic> payload) {
-    debugPrint("Notification clicked: $payload");
+    debugPrint("CleverTap Notification clicked in foreground : $payload");
 
     if (payload.containsKey("wzrk_dl") && payload["wzrk_dl"] == "myapp://second") {
+      // print("Notification Foreground 4");
+
       navigatorKey.currentState?.pushNamed('/second');
     }
   }
 
-   void _onDisplayUnitsLoaded(List<dynamic>? displayUnits) {
-    print(displayUnits);
-
-    if (displayUnits == null || displayUnits.isEmpty) return;
-    _onDisplayUnitsLoaded1(displayUnits);
-    _onDisplayUnitsLoaded2(displayUnits);
-  }
+  
 
   void _fetchNativeDisplay() async {
     CleverTapPlugin.recordEvent("Native Display", {});
@@ -161,6 +194,14 @@ class _MyHomePageState extends State<MyHomePage> {
           .whereType<String>()
           .toList();
     });
+  }
+
+  void _onDisplayUnitsLoaded(List<dynamic>? displayUnits) {
+    debugPrint(displayUnits.toString());
+
+    if (displayUnits == null || displayUnits.isEmpty) return;
+    _onDisplayUnitsLoaded1(displayUnits);
+    _onDisplayUnitsLoaded2(displayUnits);
   }
 
     @override
@@ -237,21 +278,3 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
-
-// class SecondRoute extends StatelessWidget {
-//   const SecondRoute({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('Second Route')),
-//       body: Center(
-//         child: ElevatedButton(
-//           onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
-//           child: const Text('Go Home'),
-//         ),
-//       ),
-//     );
-//   }
-// }
