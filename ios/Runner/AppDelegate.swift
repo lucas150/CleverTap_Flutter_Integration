@@ -12,9 +12,22 @@ import clevertap_plugin
     GeneratedPluginRegistrant.register(with: self)
     CleverTap.autoIntegrate() // integrate CleverTap SDK using the autoIntegrate option
     CleverTap.setDebugLevel(CleverTapLogLevel.debug.rawValue)
-
+      registerForPush()
     CleverTapPlugin.sharedInstance()?.applicationDidLaunch(options: launchOptions)
       
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
+    
+    func registerForPush() {
+        // Register for Push notifications
+        UNUserNotificationCenter.current().delegate = self
+        // request Permissions
+        UNUserNotificationCenter.current().requestAuthorization(options: [.sound, .badge, .alert], completionHandler: {granted, error in
+            if granted {
+                DispatchQueue.main.async {
+                    UIApplication.shared.registerForRemoteNotifications()
+                }
+            }
+        })
+    }
 }

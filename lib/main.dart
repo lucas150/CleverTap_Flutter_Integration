@@ -13,12 +13,25 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 Future<void> _firebaseBackgroundMessageHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   debugPrint("clevertap _firebaseBackgroundMessageHandler Background");
-  CleverTapPlugin.createNotification(jsonEncode(message.data));
+
+   if (message.data.containsKey('wzrk_id')) {
+    print('wzrk_id is present: ${message.data['wzrk_id']}');
+    CleverTapPlugin.createNotification(jsonEncode(message.data));
+  } else {
+    print('wzrk_id is NOT present');
+  }
 }
 
 void _firebaseForegroundMessageHandler(RemoteMessage remoteMessage) {
   debugPrint('clevertap _firebaseForegroundMessageHandler called');
-  CleverTapPlugin.createNotification(jsonEncode(remoteMessage.data));
+   if (remoteMessage.data.containsKey('wzrk_id')) {
+    print('wzrk_id is present: ${remoteMessage.data['wzrk_id']}');
+      CleverTapPlugin.createNotification(jsonEncode(remoteMessage.data));
+  } else {
+    print('wzrk_id is NOT present');
+  }
+
+  
 }
 
 
@@ -30,22 +43,11 @@ void main() async {
 
   FirebaseMessaging.onMessage.listen(_firebaseForegroundMessageHandler);
   FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessageHandler);
-  CleverTapPlugin.onKilledStateNotificationClicked(_onKilledStateNotificationClickedHandler);
   
   runApp(const MyApp());
 }
 
-@pragma('vm:entry-point')
-void _onKilledStateNotificationClickedHandler(Map<String, dynamic> payload) async {
-  debugPrint("Notification clicked in Kill State: $payload");
-  // print("Notification Foreground 1");
-  
-CleverTapPlugin.getAppLaunchNotification();
-  if (payload.containsKey("wzrk_dl") && payload["wzrk_dl"] == "myapp://second") {
-      // print("Notification Foreground 2");
-    navigatorKey.currentState?.pushNamed('/second');
-  }
-}
+
 
 
 
@@ -84,11 +86,10 @@ class _MyHomePageState extends State<MyHomePage> {
   List<String> imageUrls2 = [];
    void _handleKilledStateNotificationInteraction() async {
     CleverTapAppLaunchNotification appLaunchNotification = await CleverTapPlugin.getAppLaunchNotification();
-    // print("Notification Foreground 3");
-
+    print("_handleKilledStateNotificationInteraction => $appLaunchNotification");
     if (appLaunchNotification.didNotificationLaunchApp) {
       Map<String, dynamic> notificationPayload = appLaunchNotification.payload!;
-      // print("Notification Foreground 4");
+      print("Notification Foreground 4");
       _handleDeeplink(notificationPayload);
     }
   }
@@ -98,8 +99,8 @@ class _MyHomePageState extends State<MyHomePage> {
     // print(type);
     debugPrint("CleverTap : payload $notificationPayload");
     if (type != null) {
-      // print("_handleKilledStateNotificationInteraction => Type: $type");
-      // print("Notification Foreground 3");
+      print("_handleKilledStateNotificationInteraction => Type: $type");
+      print("Notification Foreground 3");
 
          navigatorKey.currentState?.pushNamed('/second');
       
@@ -116,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _handleKilledStateNotificationInteraction();
     }
   }
-
+  
   void _setupFirebaseMessaging() {
     FirebaseMessaging.instance.getToken().then((value) {
       if (value != null) {
@@ -129,11 +130,13 @@ class _MyHomePageState extends State<MyHomePage> {
   void _initializeCleverTap() {
     CleverTapPlugin.onUserLogin({
       'Name': 'Captain America',
-      'Identity': '101',
+      'Identity': '167267',
       'Email': 'captain@america.com',
       'Phone': '+14121234',
       'stuff': ["bags", "shoes"],
+      'Customer':'Silver', 
     });
+
 
     CleverTapPlugin.createNotificationChannel("henil123", "Flutter Test", "Flutter Test", 3, true);
     CleverTapPlugin.initializeInbox();
@@ -141,6 +144,9 @@ class _MyHomePageState extends State<MyHomePage> {
     CleverTapPlugin().setCleverTapInboxMessagesDidUpdateHandler(() => debugPrint("Inbox messages updated"));
     CleverTapPlugin().setCleverTapDisplayUnitsLoadedHandler(_onDisplayUnitsLoaded);
     CleverTapPlugin().setCleverTapPushClickedPayloadReceivedHandler(_onNotificationClicked);
+   
+
+
     // CleverTapPlugin().recordEvent("hi",{});
   }
 
@@ -156,7 +162,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  
 
   void _fetchNativeDisplay() async {
     CleverTapPlugin.recordEvent("Native Display", {});
@@ -167,6 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
    void _onDisplayUnitsLoaded1(List<dynamic>? displayUnits) {
     if (displayUnits == null || displayUnits.isEmpty) return;
+
     setState(() {
       imageUrls1 = displayUnits
           .where((unit) => unit["custom_kv"]?["id"] == "native1")
@@ -178,7 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _fetchNativeDisplay2() async {
-    CleverTapPlugin.recordEvent("ct-nativedisplay", {});
+    // CleverTapPlugin.recordEvent("ct-nativedisplay", {});
     await Future.delayed(const Duration(seconds: 2));
     var displayUnits = await CleverTapPlugin.getAllDisplayUnits();
     _onDisplayUnitsLoaded2(displayUnits);
@@ -188,7 +194,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (displayUnits == null || displayUnits.isEmpty) return;
     setState(() {
       imageUrls2 = displayUnits
-          .where((unit) => unit["custom_kv"]?["id"] == "native2") 
+          .where((unit) => unit["custom_kv"]?["id"] == "native3") 
           .expand((unit) => unit["content"])
           .map((content) => content["media"]?["url"])
           .whereType<String>()
@@ -217,9 +223,13 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+
             ElevatedButton(
-              onPressed: () => CleverTapPlugin.recordEvent("In-app Notification Triggered", {}),
-              child: const Text('Trigger In-app Notification'),
+            onPressed: () async {
+                var customer = await CleverTapPlugin.profileGetProperty("Customer"); // Wait for result
+                debugPrint("Clevertap  ${customer ?? 'Not Found'}"); // Print value
+              },              
+              child: const Text('Fetch '),
             ),
             const SizedBox(height: 10),
             ElevatedButton(
@@ -248,17 +258,25 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: 20),
             if (imageUrls1.isNotEmpty)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text("Native Display 1 Images", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 5),
-                  ...imageUrls1.map((url) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Image.network(url, height: 200, fit: BoxFit.contain),
-                      )),
-                ],
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text("Native Display 1 Slider", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 220,
+                  child: PageView.builder(
+                    itemCount: imageUrls1.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Image.network(imageUrls1[index], fit: BoxFit.contain),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
             if (imageUrls2.isNotEmpty)
               Column(

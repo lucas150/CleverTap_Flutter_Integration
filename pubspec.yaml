@@ -30,7 +30,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  clevertap_plugin: 3.2.0
+  clevertap_plugin: 3.3.0
+    # git:
+    #   url: https://github.com/CleverTap/clevertap-flutter.git
+    #   ref: task/SDK-4506/pushtemplates_with_custom_handling 
   firebase_core: ^2.27.0
   firebase_messaging: ^14.7.10
   
