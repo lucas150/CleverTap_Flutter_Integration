@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'second_screen.dart';
 import 'dart:io';
 
-
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> _firebaseBackgroundMessageHandler(RemoteMessage message) async {
@@ -226,8 +225,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
             ElevatedButton(
             onPressed: () async {
-                var customer = await CleverTapPlugin.profileGetProperty("Customer"); // Wait for result
-                debugPrint("Clevertap  ${customer ?? 'Not Found'}"); // Print value
+                // var customer = await CleverTapPlugin.profileGetProperty("Customer"); // Wait for result
+                // debugPrint("Clevertap  ${customer ?? 'Not Found'}"); // Print value
               },              
               child: const Text('Fetch '),
             ),
